@@ -1,5 +1,5 @@
 /* =========================================================
-   Arjun & Ananya — Wedding Invitation scripts
+   Rahul & Priya — Wedding Invitation scripts
    ========================================================= */
 (() => {
   'use strict';
@@ -8,7 +8,7 @@
   const CONFIG = {
     weddingDate: new Date('2027-02-14T18:30:00+05:30'), // ceremony start (IST)
     weddingEnd:  new Date('2027-02-14T23:30:00+05:30'),
-    title: "Arjun & Ananya's Wedding",
+    title: "Rahul & Priya's Wedding",
     location: 'The Rosewood Palace, Lake Pichola Road, Udaipur',
   };
 
@@ -23,7 +23,7 @@
   window.addEventListener('load', () => setTimeout(hidePreloader, 400));
   setTimeout(hidePreloader, 5000); // safety net on slow networks
 
-  /* ---------- Personalised guest name: index.html?to=Priya ---------- */
+  /* ---------- Personalised guest name: index.html?to=Anjali ---------- */
   const guest = new URLSearchParams(location.search).get('to');
   if (guest) $('#guestName').textContent = 'Dear ' + guest.trim().slice(0, 40);
 
@@ -100,9 +100,6 @@
   const progress = $('#scrollProgress');
   const toTop = $('#toTop');
   const parallaxEls = reduceMotion ? [] : $$('[data-parallax]');
-  const timeline = $('#timeline');
-  const timelineFill = $('.timeline__fill');
-  const timelineItems = $$('.timeline__item');
 
   let ticking = false;
   function onScroll() {
@@ -130,16 +127,6 @@
       el.style.transform = `translate3d(0, ${offset.toFixed(1)}px, 0)`;
     });
 
-    // timeline line drawing
-    if (timeline) {
-      const r = timeline.getBoundingClientRect();
-      const trigger = vh * 0.65;
-      const p = Math.min(Math.max((trigger - r.top) / r.height, 0), 1);
-      timelineFill.style.setProperty('--p', p.toFixed(3));
-      timelineItems.forEach((item) => {
-        item.classList.toggle('is-active', item.getBoundingClientRect().top < trigger);
-      });
-    }
   }
 
   window.addEventListener('scroll', onScroll, { passive: true });
@@ -185,7 +172,7 @@
     const ics = [
       'BEGIN:VCALENDAR', 'VERSION:2.0', 'PRODID:-//Wedding Invitation//EN', 'CALSCALE:GREGORIAN',
       'BEGIN:VEVENT',
-      'UID:arjun-ananya-wedding-20270214@invite',
+      'UID:rahul-priya-wedding-20270214@invite',
       'DTSTAMP:' + icsDate(new Date()),
       'DTSTART:' + icsDate(CONFIG.weddingDate),
       'DTEND:' + icsDate(CONFIG.weddingEnd),
@@ -196,12 +183,36 @@
       'END:VEVENT', 'END:VCALENDAR',
     ].join('\r\n');
     const url = URL.createObjectURL(new Blob([ics], { type: 'text/calendar' }));
-    const a = Object.assign(document.createElement('a'), { href: url, download: 'arjun-ananya-wedding.ics' });
+    const a = Object.assign(document.createElement('a'), { href: url, download: 'rahul-priya-wedding.ics' });
     document.body.appendChild(a);
     a.click();
     a.remove();
     setTimeout(() => URL.revokeObjectURL(url), 1000);
   });
+
+  /* ---------- Count-up numbers (love note stats) ---------- */
+  const counters = $$('[data-count]');
+  if (counters.length && 'IntersectionObserver' in window) {
+    const countIO = new IntersectionObserver((entries) => {
+      entries.forEach((entry) => {
+        if (!entry.isIntersecting) return;
+        const el = entry.target;
+        const end = parseInt(el.dataset.count, 10) || 0;
+        const start = performance.now();
+        const dur = reduceMotion ? 1 : 1600;
+        const step = (now) => {
+          const k = Math.min((now - start) / dur, 1);
+          el.textContent = Math.round(end * (1 - Math.pow(1 - k, 3)));
+          if (k < 1) requestAnimationFrame(step);
+        };
+        requestAnimationFrame(step);
+        countIO.unobserve(el);
+      });
+    }, { threshold: 0.6 });
+    counters.forEach((el) => countIO.observe(el));
+  } else {
+    counters.forEach((el) => { el.textContent = el.dataset.count; });
+  }
 
   /* ---------- RSVP ---------- */
   const form = $('#rsvpForm');
